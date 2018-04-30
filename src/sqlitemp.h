@@ -4,7 +4,7 @@
 #include "xsqlitemp.h"
 
 template< typename _Elem, typename _Traits >
-std::basic_ostream< _Elem, _Traits >& operator <<(std::basic_ostream< _Elem, _Traits >& _Ostr, sqliteElement< _Elem >& e)
+std::basic_ostream< _Elem, _Traits >& operator <<(std::basic_ostream< _Elem, _Traits >& _Ostr, const sqliteElement< _Elem >& e)
 {
 	switch (e.type())
 	{

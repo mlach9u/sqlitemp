@@ -9,21 +9,35 @@ typedef sqlite3_stmt* _SQLiteStmt;
 template< typename _Elem >
 struct sqliteColumn
 {
+	typedef typename sqliteColumn< _Elem > _Ty;
 	typedef typename basic_string< _Elem > _String;
 public:
+	sqliteColumn()
+		: m_SQLiteStmt(0), m_iColumn(0) {}
 	sqliteColumn(_SQLiteStmt SQLiteStmt, int iColumn)
 		: m_SQLiteStmt(SQLiteStmt), m_iColumn(iColumn) {}
 
 public:
-	_String name()
+	_String name() const
 	{
 		_String strRet;
 		strRet.fromutf8(sqlite3_column_name(m_SQLiteStmt, m_iColumn));
 		return strRet;
 	}
 
-	int type()
+	int type() const
 	{ return sqlite3_column_type(m_SQLiteStmt, m_iColumn); }
+
+public:
+	const _Ty& operator=(const _Ty& Other)
+	{
+		if (this != &Other)
+		{
+			m_SQLiteStmt = Other.m_SQLiteStmt;
+			m_iColumn = Other.m_iColumn;
+		}
+		return *this;
+	}
 
 protected:
 	_SQLiteStmt m_SQLiteStmt;
@@ -34,32 +48,42 @@ template< typename _Elem >
 struct sqliteElement : public sqliteColumn< _Elem >
 {
 	typedef typename sqliteColumn< _Elem > _Base;
+	typedef typename sqliteElement< _Elem > _Ty;
 	typedef typename _Base::_String _String;
 public:
+	sqliteElement() {}
 	sqliteElement(_SQLiteStmt SQLiteStmt, int iColumn)
 		: _Base(SQLiteStmt, iColumn) {}
 
 public:
-	int size()
+	int size() const
 	{ return sqlite3_column_bytes(m_SQLiteStmt, m_iColumn); }
 
-	const void* as_blob()
+	const void* as_blob() const
 	{ return sqlite3_column_blob(m_SQLiteStmt, m_iColumn); }
 
-	double as_double()
+	double as_double() const
 	{ return sqlite3_column_double(m_SQLiteStmt, m_iColumn); }
 
-	int as_int()
+	int as_int() const
 	{ return sqlite3_column_int(m_SQLiteStmt, m_iColumn); }
 
-	sqlite3_int64 as_int64()
+	sqlite3_int64 as_int64() const
 	{ return sqlite3_column_int64(m_SQLiteStmt, m_iColumn); }
 
-	_String as_string()
+	_String as_string() const
 	{
 		_String strRet;
 		strRet.fromutf8((const char*)(sqlite3_column_text(m_SQLiteStmt, m_iColumn)));
 		return strRet;
+	}
+
+public:
+	const _Ty& operator=(const _Ty& Other)
+	{
+		if (this != &Other)
+			_Base::operator=(Other);
+		return *this;
 	}
 };
 
@@ -67,15 +91,32 @@ template< typename _Elem >
 struct sqliteElementConstIterator
 {
 	typedef typename sqliteElementConstIterator< _Elem > _Ty;
+	typedef typename sqliteElement< _Elem > _Element;
 public:
+	sqliteElementConstIterator()
+		: m_SQLiteStmt(0), m_iColumn(0) {}
 	sqliteElementConstIterator(_SQLiteStmt SQLiteStmt, int iColumn)
 		: m_SQLiteStmt(SQLiteStmt), m_iColumn(iColumn) {}
 
 public:
-	_Ty& operator++(int nDummy)	{ m_iColumn++; return *this; }
-	_Ty& operator++()			{ m_iColumn++; return *this; }
+	bool operator==(const _Ty& Other) const		{ return ((m_SQLiteStmt == Other.m_SQLiteStmt) && (m_iColumn == Other.m_iColumn)); }
+	bool operator!=(const _Ty& Other) const		{ return !(*this == Other); }
+	const _Ty& operator++(int)					{ m_iColumn++; return *this; }
+	const _Ty& operator++()						{ m_iColumn++; return *this; }
+	const _Ty& operator=(const _Ty& Other)
+	{
+		if (this != &Other)
+		{
+			m_SQLiteStmt = Other.m_SQLiteStmt;
+			m_iColumn = Other.m_iColumn;
+		}
+		return *this;
+	}
+	const _Element* operator->()				{ m_Element = _Element(m_SQLiteStmt, m_iColumn); return &m_Element; }
+	const _Element& operator*()					{ m_Element = _Element(m_SQLiteStmt, m_iColumn); return m_Element; }
 
 protected:
+	_Element m_Element;
 	_SQLiteStmt m_SQLiteStmt;
 	int m_iColumn;
 };
@@ -83,10 +124,22 @@ protected:
 template< typename _Elem >
 struct sqliteElementIterator : public sqliteElementConstIterator< _Elem >
 {
+	typedef typename sqliteElementIterator< _Elem > _Ty;
 	typedef typename sqliteElementConstIterator< _Elem > _Base;
 public:
+	sqliteElementIterator() {}
 	sqliteElementIterator(_SQLiteStmt SQLiteStmt, int iColumn)
 		: _Base(SQLiteStmt, iColumn) {}
+
+public:
+	const _Ty& operator=(const _Ty& Other)
+	{
+		if (this != &Other)
+			_Base::operator=(Other);
+		return *this;
+	}
+	_Element* operator->()						{ m_Element = _Element(m_SQLiteStmt, m_iColumn); return &m_Element; }
+	_Element& operator*()						{ m_Element = _Element(m_SQLiteStmt, m_iColumn); return m_Element; }
 };
 
 template< typename _Elem >
@@ -155,6 +208,18 @@ public:
 
 	sqliteElement< _Elem > operator[](int iColumn)
 	{ return at(iColumn); }
+
+public:
+	const_iterator begin() const	{ return const_iterator(m_SQLiteStmt, 0); }
+	const_iterator end() const		{ return const_iterator(m_SQLiteStmt, size()); }
+	const_iterator rbegin() const	{ return const_iterator(m_SQLiteStmt, size() - 1); }
+	const_iterator rend() const		{ return const_iterator(m_SQLiteStmt, -1); }
+
+public:
+	iterator begin()				{ return iterator(m_SQLiteStmt, 0); }
+	iterator end()					{ return iterator(m_SQLiteStmt, size()); }
+	iterator rbegin()				{ return iterator(m_SQLiteStmt, size() - 1); }
+	iterator rend()					{ return iterator(m_SQLiteStmt, -1); }
 
 private:
 	int m_nLastResult;

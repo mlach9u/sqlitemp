@@ -47,6 +47,16 @@ int main(int argc, char* argv[])
 							for (int i = 0; i < nSize; i++)
 								std::cout << prs->at(i) << "\t";
 							std::cout << std::endl;
+
+							sqliteResultSet< char >::iterator it;
+							for (it = prs->begin(); it != prs->end(); ++it)
+								std::cout << *it << "\t";
+							std::cout << std::endl;
+
+							sqliteResultSet< char >::const_iterator cit;
+							for (cit = prs->begin(); cit != prs->end(); ++cit)
+								std::cout << *cit << "\t";
+							std::cout << std::endl;
 						} while (prs->to_next());
 					}
 					else
