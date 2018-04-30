@@ -194,7 +194,7 @@ public:
 		if (is_exist_next())
 		{
 			m_nLastResult = _Base::step();
-			return ((m_nLastResult == SQLITE_ROW) || (m_nLastResult == SQLITE_DONE));
+			return (m_nLastResult == SQLITE_ROW);
 		}
 		return false;
 	}
