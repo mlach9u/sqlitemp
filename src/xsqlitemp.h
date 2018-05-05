@@ -143,6 +143,61 @@ public:
 };
 
 template< typename _Elem >
+struct sqliteColumnSet
+{
+	typedef typename sqliteColumnSet< _Elem > _Ty;
+	typedef typename sqliteElementConstIterator< _Elem > const_iterator;
+	typedef typename sqliteElementIterator< _Elem > iterator;
+	typedef typename const_iterator::_Element _Element;
+public:
+	sqliteColumnSet(_SQLiteStmt SQLiteStmt) : m_SQLiteStmt(SQLiteStmt), m_iColumn(0) {}
+	~sqliteColumnSet() {}
+
+public:
+	int size()
+	{
+		return sqlite3_column_count(m_SQLiteStmt);
+	}
+
+	const _Element at(int iColumn) const
+	{
+		return _Element(m_SQLiteStmt, iColumn);
+	}
+
+	const _Element operator[](int iColumn) const
+	{
+		return at(iColumn);
+	}
+
+public:
+	const_iterator begin() const { return const_iterator(m_SQLiteStmt, 0); }
+	const_iterator end() const { return const_iterator(m_SQLiteStmt, size()); }
+	const_iterator rbegin() const { return const_iterator(m_SQLiteStmt, size() - 1); }
+	const_iterator rend() const { return const_iterator(m_SQLiteStmt, -1); }
+
+public:
+	iterator begin() { return iterator(m_SQLiteStmt, 0); }
+	iterator end() { return iterator(m_SQLiteStmt, size()); }
+	iterator rbegin() { return iterator(m_SQLiteStmt, size() - 1); }
+	iterator rend() { return iterator(m_SQLiteStmt, -1); }
+
+public:
+	const _Ty& operator=(const _Ty& Other)
+	{
+		if (this != &Other)
+		{
+			m_SQLiteStmt = Other.m_SQLiteStmt;
+			m_iColumn = Other.m_iColumn;
+		}
+		return *this;
+	}
+
+private:
+	_SQLiteStmt m_SQLiteStmt;
+	int m_iColumn;
+};
+
+template< typename _Elem >
 struct sqliteStatement
 {
 public:
@@ -171,15 +226,15 @@ public:
 };
 
 template< typename _Elem >
-struct sqliteResultSet : protected sqliteStatement< _Elem >
+struct sqliteRowSet : protected sqliteStatement< _Elem >
 {
+	typedef typename sqliteRowSet< _Elem > _Ty;
 	typedef typename sqliteStatement< _Elem > _Base;
-	typedef typename sqliteElementConstIterator< _Elem > const_iterator;
-	typedef typename sqliteElementIterator< _Elem > iterator;
+	typedef typename sqliteColumnSet< _Elem > _ColumnSet;
 public:
-	sqliteResultSet(_SQLiteStmt SQLiteStmt)
+	sqliteRowSet(_SQLiteStmt SQLiteStmt)
 		: _Base(SQLiteStmt), m_nLastResult(SQLITE_ROW) {}
-	virtual ~sqliteResultSet() {}
+	virtual ~sqliteRowSet() {}
 
 public:
 	int get_result() const
@@ -199,27 +254,8 @@ public:
 		return false;
 	}
 
-public:
-	int size()
-	{ return sqlite3_column_count(m_SQLiteStmt); }
-
-	sqliteElement< _Elem > at(int iColumn)
-	{ return sqliteElement< _Elem >(m_SQLiteStmt, iColumn); }
-
-	sqliteElement< _Elem > operator[](int iColumn)
-	{ return at(iColumn); }
-
-public:
-	const_iterator begin() const	{ return const_iterator(m_SQLiteStmt, 0); }
-	const_iterator end() const		{ return const_iterator(m_SQLiteStmt, size()); }
-	const_iterator rbegin() const	{ return const_iterator(m_SQLiteStmt, size() - 1); }
-	const_iterator rend() const		{ return const_iterator(m_SQLiteStmt, -1); }
-
-public:
-	iterator begin()				{ return iterator(m_SQLiteStmt, 0); }
-	iterator end()					{ return iterator(m_SQLiteStmt, size()); }
-	iterator rbegin()				{ return iterator(m_SQLiteStmt, size() - 1); }
-	iterator rend()					{ return iterator(m_SQLiteStmt, -1); }
+	_ColumnSet column()
+	{ return _ColumnSet(m_SQLiteStmt); }
 
 private:
 	int m_nLastResult;

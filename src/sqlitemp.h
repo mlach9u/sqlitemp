@@ -96,14 +96,14 @@ public:
 		return (m_nLastError == SQLITE_OK);
 	}
 
-	std::shared_ptr< sqliteResultSet< _Elem > > query(const _String& strSql)
+	std::shared_ptr< sqliteRowSet< _Elem > > query(const _String& strSql)
 	{
-		std::shared_ptr< sqliteResultSet< _Elem > > pRet;
+		std::shared_ptr< sqliteRowSet< _Elem > > pRet;
 		_SQLiteStmt SQLiteStmt;
 		m_nLastError = sqlite3_prepare_v3(m_SQLite, strSql.toutf8().c_str(), -1, 0, &SQLiteStmt, 0);
 		if (SQLiteStmt)
 		{
-			pRet.reset(new sqliteResultSet< _Elem >(SQLiteStmt));
+			pRet.reset(new sqliteRowSet< _Elem >(SQLiteStmt));
 			pRet->to_next();
 		}
 		return pRet;

@@ -29,32 +29,33 @@ int main(int argc, char* argv[])
 				std::cout << "Input> ";
 				std::getline(std::cin, strLine);
 
-				std::transform(strLine.begin(), strLine.end(), strLine.begin(), ::tolower);
+				strLine.tolower();
 
 				if (strLine != "exit")
 				{
 					if (strLine.substr(0, 6) == "select")
 					{
-						std::shared_ptr< sqliteResultSet< char > > prs = db.query(strLine);
+						std::shared_ptr< sqliteRowSet< char > > prs = db.query(strLine);
+						sqliteColumnSet< char > cs = prs->column();
 
-						int nSize = prs->size();
+						int nSize = cs.size();
 						for (int i = 0; i < nSize; i++)
-							std::cout << prs->at(i).name() << "\t";
+							std::cout << cs.at(i).name() << "\t";
 						std::cout << std::endl;
 
 						do
 						{
 							for (int i = 0; i < nSize; i++)
-								std::cout << prs->at(i) << "\t";
+								std::cout << cs.at(i) << "\t";
 							std::cout << std::endl;
 
-							sqliteResultSet< char >::iterator it;
-							for (it = prs->begin(); it != prs->end(); ++it)
+							sqliteColumnSet< char >::iterator it;
+							for (it = cs.begin(); it != cs.end(); ++it)
 								std::cout << *it << "\t";
 							std::cout << std::endl;
 
-							sqliteResultSet< char >::const_iterator cit;
-							for (cit = prs->begin(); cit != prs->end(); ++cit)
+							sqliteColumnSet< char >::const_iterator cit;
+							for (cit = cs.begin(); cit != cs.end(); ++cit)
 								std::cout << *cit << "\t";
 							std::cout << std::endl;
 						} while (prs->to_next());
