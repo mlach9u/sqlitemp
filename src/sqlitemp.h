@@ -34,6 +34,9 @@ public:
 	{ close(); }
 
 public:
+	void clear_err()			{ m_nLastError = SQLITE_OK; }
+	void set_err(int nError)	{ m_nLastError = nError; }
+
 	int get_err()
 	{
 		if (m_SQLite)
