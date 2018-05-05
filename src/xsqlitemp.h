@@ -150,6 +150,7 @@ struct sqliteColumnSet
 	typedef typename sqliteElementIterator< _Elem > iterator;
 	typedef typename const_iterator::_Element _Element;
 public:
+	sqliteColumnSet() : m_SQLiteStmt(0), m_iColumn(0) {}
 	sqliteColumnSet(_SQLiteStmt SQLiteStmt) : m_SQLiteStmt(SQLiteStmt), m_iColumn(0) {}
 	~sqliteColumnSet() {}
 

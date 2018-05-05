@@ -7,6 +7,24 @@
 
 #include "sqlitemp.h"
 
+enum ColumnIteratorType
+{
+	citAt,
+	citOperator,
+
+	citCount
+};
+
+enum ElementIteratorType
+{
+	eitAt,
+	eitOperator,
+	eitIterator,
+	eitConstIterator,
+
+	eitCount
+};
+
 int main(int argc, char* argv[])
 {
 	setlocale(LC_ALL, "");
@@ -23,6 +41,13 @@ int main(int argc, char* argv[])
 			std::cout << "Database file [" << strFileName << "] is opened successfully." << std::endl;
 			std::cout << "If you want to exit this program, input 'exit'." << std::endl;
 
+			if (db.execute("create table __sqlitempType (name varchar(32), iteratorType integer)"))
+			{
+				db.execute("insert into __sqlitempType (name, iteratorType) values ('column', 0)");
+				db.execute("insert into __sqlitempType (name, iteratorType) values ('element', 0)");
+			}
+			db.clear_err();
+
 			string strLine;
 			do
 			{
@@ -35,29 +60,66 @@ int main(int argc, char* argv[])
 				{
 					if (strLine.substr(0, 6) == "select")
 					{
-						std::shared_ptr< sqliteRowSet< char > > prs = db.query(strLine);
-						sqliteColumnSet< char > cs = prs->column();
+						int iColumnIteratorType, iElementIteratorType;
+						std::shared_ptr< sqliteRowSet< char > > prsIteratorType = db.query("select * from __sqlitempType");
+						sqliteColumnSet< char > csIteratorType;
 
+						do
+						{
+							csIteratorType = prsIteratorType->column();
+							if (csIteratorType[0].as_string() == "column")
+								iColumnIteratorType = csIteratorType[1].as_int();
+							else if (csIteratorType[0].as_string() == "element")
+								iElementIteratorType = csIteratorType[1].as_int();
+						} while (prsIteratorType->to_next());
+
+						std::shared_ptr< sqliteRowSet< char > > prs = db.query(strLine);
+
+						sqliteColumnSet< char > cs = prs->column();
 						int nSize = cs.size();
 						for (int i = 0; i < nSize; i++)
-							std::cout << cs.at(i).name() << "\t";
+						{
+							switch (iColumnIteratorType)
+							{
+							case citAt:			std::cout << cs.at(i).name() << "\t";	break;
+							case citOperator:	std::cout << cs[i].name() << "\t";		break;
+							}
+						}
 						std::cout << std::endl;
 
 						do
 						{
-							for (int i = 0; i < nSize; i++)
-								std::cout << cs.at(i) << "\t";
-							std::cout << std::endl;
+							cs = prs->column();
 
-							sqliteColumnSet< char >::iterator it;
-							for (it = cs.begin(); it != cs.end(); ++it)
-								std::cout << *it << "\t";
-							std::cout << std::endl;
-
-							sqliteColumnSet< char >::const_iterator cit;
-							for (cit = cs.begin(); cit != cs.end(); ++cit)
-								std::cout << *cit << "\t";
-							std::cout << std::endl;
+							switch (iElementIteratorType)
+							{
+							case eitAt:
+								for (int i = 0; i < nSize; i++)
+									std::cout << cs.at(i) << "\t";
+								std::cout << std::endl;
+								break;
+							case eitOperator:
+								for (int i = 0; i < nSize; i++)
+									std::cout << cs[i] << "\t";
+								std::cout << std::endl;
+								break;
+							case eitIterator:
+							{
+								sqliteColumnSet< char >::iterator it;
+								for (it = cs.begin(); it != cs.end(); ++it)
+									std::cout << *it << "\t";
+								std::cout << std::endl;
+							}
+							break;
+							case eitConstIterator:
+							{
+								sqliteColumnSet< char >::const_iterator cit;
+								for (cit = cs.begin(); cit != cs.end(); ++cit)
+									std::cout << *cit << "\t";
+								std::cout << std::endl;
+							}
+							break;
+							}
 						} while (prs->to_next());
 					}
 					else
