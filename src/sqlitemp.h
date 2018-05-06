@@ -34,6 +34,8 @@ public:
 	{ close(); }
 
 public:
+	bool good() const			{ return (m_nLastError == SQLITE_OK); }
+	bool fail() const			{ return !good(); }
 	void clear_err()			{ m_nLastError = SQLITE_OK; }
 	void set_err(int nError)	{ m_nLastError = nError; }
 
@@ -107,7 +109,11 @@ public:
 		if (SQLiteStmt)
 		{
 			pRet.reset(new sqliteRowSet< _Elem >(SQLiteStmt));
-			pRet->to_next();
+			if (!pRet->to_next())
+			{
+				m_nLastError = pRet->get_result();
+				pRet.reset();
+			}
 		}
 		return pRet;
 	}

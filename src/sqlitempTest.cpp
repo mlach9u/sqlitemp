@@ -75,63 +75,67 @@ int main(int argc, char* argv[])
 
 						std::shared_ptr< sqliteRowSet< char > > prs = db.query(strLine);
 
-						sqliteColumnSet< char > cs = prs->column();
-						int nSize = cs.size();
-						for (int i = 0; i < nSize; i++)
+						if (prs.get() && db.good())
 						{
-							switch (iColumnIteratorType)
+							sqliteColumnSet< char > cs = prs->column();
+							int nSize = cs.size();
+							for (int i = 0; i < nSize; i++)
 							{
-							case citAt:			std::cout << cs.at(i).name() << "\t";	break;
-							case citOperator:	std::cout << cs[i].name() << "\t";		break;
+								switch (iColumnIteratorType)
+								{
+								case citAt:			std::cout << cs.at(i).name() << "\t";	break;
+								case citOperator:	std::cout << cs[i].name() << "\t";		break;
+								}
 							}
+							std::cout << std::endl;
+
+							do
+							{
+								cs = prs->column();
+
+								switch (iElementIteratorType)
+								{
+								case eitAt:
+									for (int i = 0; i < nSize; i++)
+										std::cout << cs.at(i) << "\t";
+									std::cout << std::endl;
+									break;
+								case eitOperator:
+									for (int i = 0; i < nSize; i++)
+										std::cout << cs[i] << "\t";
+									std::cout << std::endl;
+									break;
+								case eitIterator:
+								{
+									sqliteColumnSet< char >::iterator it;
+									for (it = cs.begin(); it != cs.end(); ++it)
+										std::cout << *it << "\t";
+									std::cout << std::endl;
+								}
+								break;
+								case eitConstIterator:
+								{
+									sqliteColumnSet< char >::const_iterator cit;
+									for (cit = cs.begin(); cit != cs.end(); ++cit)
+										std::cout << *cit << "\t";
+									std::cout << std::endl;
+								}
+								break;
+								}
+							} while (prs->to_next());
 						}
-						std::cout << std::endl;
-
-						do
-						{
-							cs = prs->column();
-
-							switch (iElementIteratorType)
-							{
-							case eitAt:
-								for (int i = 0; i < nSize; i++)
-									std::cout << cs.at(i) << "\t";
-								std::cout << std::endl;
-								break;
-							case eitOperator:
-								for (int i = 0; i < nSize; i++)
-									std::cout << cs[i] << "\t";
-								std::cout << std::endl;
-								break;
-							case eitIterator:
-							{
-								sqliteColumnSet< char >::iterator it;
-								for (it = cs.begin(); it != cs.end(); ++it)
-									std::cout << *it << "\t";
-								std::cout << std::endl;
-							}
-							break;
-							case eitConstIterator:
-							{
-								sqliteColumnSet< char >::const_iterator cit;
-								for (cit = cs.begin(); cit != cs.end(); ++cit)
-									std::cout << *cit << "\t";
-								std::cout << std::endl;
-							}
-							break;
-							}
-						} while (prs->to_next());
 					}
 					else
 					{
 						if (db.execute(strLine))
 							std::cout << "Succeeded" << std::endl;
-						else
-						{
-							string strError;
-							db.get_errmsg(strError);
-							std::cout << strError << std::endl;
-						}
+					}
+
+					if (db.fail())
+					{
+						string strError;
+						db.get_errmsg(strError);
+						std::cout << strError << std::endl;
 					}
 				}
 			} while (strLine != "exit");
