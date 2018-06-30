@@ -7,6 +7,11 @@
 
 #include "sqlitemp.h"
 
+typedef sqliteDatabase< char > _Database;
+//typedef _Database::_Rowset_Ptr _Rowset_Ptr;
+//typedef _Database::_Rowset _Rowset;
+//typedef _Rowset::_ColumnSet _Columnset;
+
 enum ColumnIteratorType
 {
 	citAt,
@@ -35,7 +40,7 @@ int main(int argc, char* argv[])
 		std::cout << "Input Database file name : ";
 		std::getline(std::cin, strFileName);
 
-		sqliteDatabase< char > db;
+		_Database db;
 		if (db.open(strFileName))
 		{
 			std::cout << "Database file [" << strFileName << "] is opened successfully." << std::endl;
@@ -48,21 +53,22 @@ int main(int argc, char* argv[])
 			}
 			db.clear_err();
 
-			string strLine;
+			string strLine, strTempLine;
 			do
 			{
 				std::cout << "Input> ";
 				std::getline(std::cin, strLine);
 
-				strLine.tolower();
+				strTempLine = strLine;
+				strTempLine.tolower();
 
-				if (strLine != "exit")
+				if (strTempLine != "exit")
 				{
-					if (strLine.substr(0, 6) == "select")
+					if (strTempLine.substr(0, 6) == "select")
 					{
 						int iColumnIteratorType, iElementIteratorType;
-						std::shared_ptr< sqliteRowSet< char > > prsIteratorType = db.query("select * from __sqlitempType");
-						sqliteColumnSet< char > csIteratorType;
+						_Database::_Rowset_Ptr prsIteratorType = db.query("select * from __sqlitempType");
+						_Database::_Columnset csIteratorType;
 
 						do
 						{
@@ -73,11 +79,11 @@ int main(int argc, char* argv[])
 								iElementIteratorType = csIteratorType[1].as_int();
 						} while (prsIteratorType->to_next());
 
-						std::shared_ptr< sqliteRowSet< char > > prs = db.query(strLine);
+						_Database::_Rowset_Ptr prs = db.query(strLine);
 
 						if (prs.get() && db.good())
 						{
-							sqliteColumnSet< char > cs = prs->column();
+							_Database::_Columnset cs = prs->column();
 							int nSize = cs.size();
 							for (int i = 0; i < nSize; i++)
 							{
@@ -107,7 +113,7 @@ int main(int argc, char* argv[])
 									break;
 								case eitIterator:
 								{
-									sqliteColumnSet< char >::iterator it;
+									_Database::_Columnset::iterator it;
 									for (it = cs.begin(); it != cs.end(); ++it)
 										std::cout << *it << "\t";
 									std::cout << std::endl;
@@ -115,7 +121,7 @@ int main(int argc, char* argv[])
 								break;
 								case eitConstIterator:
 								{
-									sqliteColumnSet< char >::const_iterator cit;
+									_Database::_Columnset::const_iterator cit;
 									for (cit = cs.begin(); cit != cs.end(); ++cit)
 										std::cout << *cit << "\t";
 									std::cout << std::endl;
@@ -138,7 +144,7 @@ int main(int argc, char* argv[])
 						std::cout << strError << std::endl;
 					}
 				}
-			} while (strLine != "exit");
+			} while (strTempLine != "exit");
 			db.close();
 		}
 		else

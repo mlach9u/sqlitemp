@@ -60,19 +60,30 @@ public:
 	{ return sqlite3_column_bytes(m_SQLiteStmt, m_iColumn); }
 
 	const void* as_blob() const
-	{ return sqlite3_column_blob(m_SQLiteStmt, m_iColumn); }
+	{
+		if (type() != SQLITE_BLOB)
+			throw std::exception("Invalid column type");
+		return sqlite3_column_blob(m_SQLiteStmt, m_iColumn);
+	}
 
 	double as_double() const
-	{ return sqlite3_column_double(m_SQLiteStmt, m_iColumn); }
+	{
+		if (type() != SQLITE_FLOAT)
+			throw std::exception("Invalid column type");
+		return sqlite3_column_double(m_SQLiteStmt, m_iColumn);
+	}
 
 	int as_int() const
-	{ return sqlite3_column_int(m_SQLiteStmt, m_iColumn); }
-
-	sqlite3_int64 as_int64() const
-	{ return sqlite3_column_int64(m_SQLiteStmt, m_iColumn); }
+	{
+		if (type() != SQLITE_INTEGER)
+			throw std::exception("Invalid column type");
+		return sqlite3_column_int(m_SQLiteStmt, m_iColumn);
+	}
 
 	_String as_string() const
 	{
+		if (type() != SQLITE_TEXT)
+			throw std::exception("Invalid column type");
 		_String strRet;
 		strRet.fromutf8((const char*)(sqlite3_column_text(m_SQLiteStmt, m_iColumn)));
 		return strRet;

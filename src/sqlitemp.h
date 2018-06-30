@@ -18,7 +18,14 @@ std::basic_ostream< _Elem, _Traits >& operator <<(std::basic_ostream< _Elem, _Tr
 template< typename _Elem >
 struct sqliteDatabase
 {
-	typedef typename basic_string< _Elem > _String;
+	typedef typename sqliteRowSet< _Elem > _Rowset;
+	typedef typename _Rowset::_ColumnSet _Columnset;
+	typedef typename _Columnset::_Element _Element;
+	typedef typename _Element::_String _String;
+
+	typedef typename sqliteExecutor< _Elem > _Executor;
+
+	typedef typename std::shared_ptr< _Rowset > _Rowset_Ptr;
 
 public:
 	sqliteDatabase()
@@ -41,9 +48,9 @@ public:
 
 	int get_err()
 	{
-		if (m_SQLite)
-			return sqlite3_errcode(m_SQLite);
-		return m_nLastError;
+		if (m_nLastError)	return m_nLastError;
+		else if (m_SQLite)	return sqlite3_errcode(m_SQLite);
+		return 0;
 	}
 
 	int get_exterr()
@@ -55,14 +62,14 @@ public:
 
 	void get_errmsg(_String& strError)
 	{
-		if (m_SQLite)	strError.fromutf8(sqlite3_errmsg(m_SQLite));
-		else			strError.fromutf8(sqlite3_errstr(m_nLastError));
+		if (m_nLastError)	strError.fromutf8(sqlite3_errstr(m_nLastError));
+		else if (m_SQLite)	strError.fromutf8(sqlite3_errmsg(m_SQLite));
 	}
 
 	void throw_errmsg()
 	{
-		if (m_SQLite)	throw std::exception(string().fromutf8(sqlite3_errmsg(m_SQLite)).c_str());
-		else			throw std::exception(string().fromutf8(sqlite3_errstr(m_nLastError)).c_str());
+		if (m_nLastError)	throw std::exception(string().fromutf8(sqlite3_errstr(m_nLastError)).c_str());
+		else if (m_SQLite)	throw std::exception(string().fromutf8(sqlite3_errmsg(m_SQLite)).c_str());
 	}
 
 public:
@@ -83,13 +90,14 @@ public:
 		}
 	}
 
-	bool execute(const _String& strSql)
+private:
+	bool _execute(const _String& strSql)
 	{
 		_SQLiteStmt SQLiteStmt;
 		m_nLastError = sqlite3_prepare_v3(m_SQLite, strSql.toutf8().c_str(), -1, 0, &SQLiteStmt, 0);
 		if (SQLiteStmt)
 		{
-			sqliteExecutor< _Elem > exec(SQLiteStmt);
+			_Executor exec(SQLiteStmt);
 			m_nLastError = exec.execute();
 			switch (m_nLastError)
 			{
@@ -101,20 +109,53 @@ public:
 		return (m_nLastError == SQLITE_OK);
 	}
 
-	std::shared_ptr< sqliteRowSet< _Elem > > query(const _String& strSql)
+	_Rowset_Ptr _query(const _String& strSql)
 	{
-		std::shared_ptr< sqliteRowSet< _Elem > > pRet;
+		_Rowset_Ptr pRet;
 		_SQLiteStmt SQLiteStmt;
 		m_nLastError = sqlite3_prepare_v3(m_SQLite, strSql.toutf8().c_str(), -1, 0, &SQLiteStmt, 0);
 		if (SQLiteStmt)
 		{
-			pRet.reset(new sqliteRowSet< _Elem >(SQLiteStmt));
+			pRet.reset(new _Rowset(SQLiteStmt));
 			if (!pRet->to_next())
 			{
 				m_nLastError = pRet->get_result();
 				pRet.reset();
 			}
 		}
+		return pRet;
+	}
+
+public:
+	bool executeV(const _Elem* lpszFormat, va_list v)
+	{
+		_String strSql;
+		strSql.formatV(lpszFormat, v);
+		return _execute(strSql);
+	}
+
+	bool execute(const _Elem* lpszFormat, ...)
+	{
+		va_list v;
+		va_start(v, lpszFormat);
+		bool bRet = executeV(lpszFormat, v);
+		va_end(v);
+		return bRet;
+	}
+
+	_Rowset_Ptr queryV(const _Elem* lpszFormat, va_list v)
+	{
+		_String strSql;
+		strSql.formatV(lpszFormat, v);
+		return _query(strSql);
+	}
+
+	_Rowset_Ptr query(const _Elem* lpszFormat, ...)
+	{
+		va_list v;
+		va_start(v, lpszFormat);
+		_Rowset_Ptr pRet = queryV(lpszFormat, v);
+		va_end(v);
 		return pRet;
 	}
 
