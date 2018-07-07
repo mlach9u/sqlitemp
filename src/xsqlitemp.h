@@ -137,6 +137,7 @@ struct sqliteElementIterator : public sqliteElementConstIterator< _Elem >
 {
 	typedef typename sqliteElementIterator< _Elem > _Ty;
 	typedef typename sqliteElementConstIterator< _Elem > _Base;
+	typedef typename _Base::_Element _Element;
 public:
 	sqliteElementIterator() {}
 	sqliteElementIterator(_SQLiteStmt SQLiteStmt, int iColumn)
@@ -160,25 +161,23 @@ struct sqliteColumnSet
 	typedef typename sqliteElementConstIterator< _Elem > const_iterator;
 	typedef typename sqliteElementIterator< _Elem > iterator;
 	typedef typename const_iterator::_Element _Element;
+	typedef typename _Element::_String _String;
 public:
 	sqliteColumnSet() : m_SQLiteStmt(0), m_iColumn(0) {}
 	sqliteColumnSet(_SQLiteStmt SQLiteStmt) : m_SQLiteStmt(SQLiteStmt), m_iColumn(0) {}
 	~sqliteColumnSet() {}
 
 public:
-	int size()
+	int size() const
 	{
 		return sqlite3_column_count(m_SQLiteStmt);
 	}
 
 	const _Element at(int iColumn) const
 	{
+		if (!(iColumn < size()))
+			throw std::exception("Out of column range");
 		return _Element(m_SQLiteStmt, iColumn);
-	}
-
-	const _Element operator[](int iColumn) const
-	{
-		return at(iColumn);
 	}
 
 public:
@@ -203,6 +202,16 @@ public:
 		}
 		return *this;
 	}
+
+	const _Element operator[](int iColumn) const
+	{
+		return at(iColumn);
+	}
+
+	_Ty& operator >> (_Element& e) { e = at(m_iColumn++); return *this; }
+	_Ty& operator >> (int& n) { n = at(m_iColumn++).as_int(); return *this; }
+	_Ty& operator >> (double& d) { d = at(m_iColumn++).as_double(); return *this; }
+	_Ty& operator >> (_String& str) { str = at(m_iColumn++).as_string(); return *this; }
 
 private:
 	_SQLiteStmt m_SQLiteStmt;

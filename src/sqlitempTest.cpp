@@ -8,9 +8,6 @@
 #include "sqlitemp.h"
 
 typedef sqliteDatabase< char > _Database;
-//typedef _Database::_Rowset_Ptr _Rowset_Ptr;
-//typedef _Database::_Rowset _Rowset;
-//typedef _Rowset::_ColumnSet _Columnset;
 
 enum ColumnIteratorType
 {
@@ -26,6 +23,7 @@ enum ElementIteratorType
 	eitOperator,
 	eitIterator,
 	eitConstIterator,
+	eitInputOperator,
 
 	eitCount
 };
@@ -124,6 +122,17 @@ int main(int argc, char* argv[])
 									_Database::_Columnset::const_iterator cit;
 									for (cit = cs.begin(); cit != cs.end(); ++cit)
 										std::cout << *cit << "\t";
+									std::cout << std::endl;
+								}
+								break;
+								case eitInputOperator:
+								{
+									_Database::_Element e;
+									for (int i = 0; i < nSize; i++)
+									{
+										cs >> e;
+										std::cout << e << "\t";
+									}
 									std::cout << std::endl;
 								}
 								break;
