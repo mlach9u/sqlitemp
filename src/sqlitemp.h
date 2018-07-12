@@ -127,14 +127,15 @@ private:
 	}
 
 public:
-	bool executeV(const _Elem* lpszFormat, va_list v)
+	template< typename TYPE >
+	bool executeV(const TYPE* lpszFormat, va_list v)
 	{
 		_String strSql;
 		strSql.formatV(lpszFormat, v);
 		return _execute(strSql);
 	}
 
-	bool execute(const _Elem* lpszFormat, ...)
+	bool execute(const char* lpszFormat, ...)
 	{
 		va_list v;
 		va_start(v, lpszFormat);
@@ -143,14 +144,33 @@ public:
 		return bRet;
 	}
 
-	_Rowset_Ptr queryV(const _Elem* lpszFormat, va_list v)
+	bool execute(const wchar_t* lpszFormat, ...)
+	{
+		va_list v;
+		va_start(v, lpszFormat);
+		bool bRet = executeV(lpszFormat, v);
+		va_end(v);
+		return bRet;
+	}
+
+	template< typename TYPE >
+	_Rowset_Ptr queryV(const TYPE* lpszFormat, va_list v)
 	{
 		_String strSql;
 		strSql.formatV(lpszFormat, v);
 		return _query(strSql);
 	}
 
-	_Rowset_Ptr query(const _Elem* lpszFormat, ...)
+	_Rowset_Ptr query(const char* lpszFormat, ...)
+	{
+		va_list v;
+		va_start(v, lpszFormat);
+		_Rowset_Ptr pRet = queryV(lpszFormat, v);
+		va_end(v);
+		return pRet;
+	}
+
+	_Rowset_Ptr query(const wchar_t* lpszFormat, ...)
 	{
 		va_list v;
 		va_start(v, lpszFormat);
