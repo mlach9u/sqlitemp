@@ -4,6 +4,6 @@
 #include "lib\\sqlite3.h"
 
 #include <memory>
-#include <col\\src\\stringt\\stringt.h>
+#include "..\\..\\col\\src\\stringt\\stringt.h"
 
 #endif
