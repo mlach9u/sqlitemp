@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 				{
 					if (strTempLine.substr(0, 6) == "select")
 					{
-						int iColumnIteratorType, iElementIteratorType;
+						int iColumnIteratorType = citAt, iElementIteratorType = eitAt;
 						_Database::_Rowset_Ptr prsIteratorType = db.query("select * from __sqlitempType");
 						_Database::_Columnset csIteratorType;
 

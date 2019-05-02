@@ -57,35 +57,35 @@ public:
 
 public:
 	int size() const
-	{ return sqlite3_column_bytes(m_SQLiteStmt, m_iColumn); }
+	{ return sqlite3_column_bytes(this->m_SQLiteStmt, this->m_iColumn); }
 
 	const void* as_blob() const
 	{
-		if (type() != SQLITE_BLOB)
+		if (_Base::type() != SQLITE_BLOB)
 			throw std::exception("Invalid column type");
-		return sqlite3_column_blob(m_SQLiteStmt, m_iColumn);
+		return sqlite3_column_blob(this->m_SQLiteStmt, this->m_iColumn);
 	}
 
 	double as_double() const
 	{
-		if (type() != SQLITE_FLOAT)
+		if (_Base::type() != SQLITE_FLOAT)
 			throw std::exception("Invalid column type");
-		return sqlite3_column_double(m_SQLiteStmt, m_iColumn);
+		return sqlite3_column_double(this->m_SQLiteStmt, this->m_iColumn);
 	}
 
 	int as_int() const
 	{
-		if (type() != SQLITE_INTEGER)
+		if (_Base::type() != SQLITE_INTEGER)
 			throw std::exception("Invalid column type");
-		return sqlite3_column_int(m_SQLiteStmt, m_iColumn);
+		return sqlite3_column_int(this->m_SQLiteStmt, this->m_iColumn);
 	}
 
 	_String as_string() const
 	{
-		if (type() != SQLITE_TEXT)
+		if (_Base::type() != SQLITE_TEXT)
 			throw std::exception("Invalid column type");
 		_String strRet;
-		strRet.fromutf8((const char*)(sqlite3_column_text(m_SQLiteStmt, m_iColumn)));
+		strRet.fromutf8((const char*)(sqlite3_column_text(this->m_SQLiteStmt, this->m_iColumn)));
 		return strRet;
 	}
 
@@ -150,8 +150,8 @@ public:
 			_Base::operator=(Other);
 		return *this;
 	}
-	_Element* operator->()						{ m_Element = _Element(m_SQLiteStmt, m_iColumn); return &m_Element; }
-	_Element& operator*()						{ m_Element = _Element(m_SQLiteStmt, m_iColumn); return m_Element; }
+	_Element* operator->()						{ this->m_Element = _Element(this->m_SQLiteStmt, this->m_iColumn); return &this->m_Element; }
+	_Element& operator*()						{ this->m_Element = _Element(this->m_SQLiteStmt, this->m_iColumn); return this->m_Element; }
 };
 
 template< typename _Elem >
@@ -276,7 +276,7 @@ public:
 	}
 
 	_ColumnSet column()
-	{ return _ColumnSet(m_SQLiteStmt); }
+	{ return _ColumnSet(this->m_SQLiteStmt); }
 
 private:
 	int m_nLastResult;
