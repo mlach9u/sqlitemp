@@ -28,7 +28,7 @@ enum ElementIteratorType
     eitCount
 };
 
-int main(int argc, char* argv[])
+int main()
 {
     setlocale(LC_ALL, "");
 
