@@ -7,7 +7,7 @@
 
 #include "sqlitemp.h"
 
-typedef sqliteDatabase< char > _Database;
+typedef sqliteDatabase Database;
 
 enum ColumnIteratorType
 {
@@ -34,11 +34,11 @@ int main()
 
     try
     {
-        string strFileName;
+        std::string strFileName;
         std::cout << "Input Database file name : ";
         std::getline(std::cin, strFileName);
 
-        _Database db;
+        Database db;
         if (db.open(strFileName))
         {
             std::cout << "Database file [" << strFileName << "] is opened successfully." << std::endl;
@@ -51,22 +51,24 @@ int main()
             }
             db.clear_err();
 
-            string strLine, strTempLine;
+            std::string strLine, strTempLine;
             do
             {
                 std::cout << "Input> ";
                 std::getline(std::cin, strLine);
 
                 strTempLine = strLine;
-                strTempLine.tolower();
+                std::transform(strTempLine.begin(), strTempLine.end(), strTempLine.begin(),
+                    [](unsigned char c) { return std::tolower(c); }
+                );
 
                 if (strTempLine != "exit")
                 {
                     if (strTempLine.substr(0, 6) == "select")
                     {
                         int iColumnIteratorType = citAt, iElementIteratorType = eitAt;
-                        _Database::_Rowset_Ptr prsIteratorType = db.query("select * from __sqlitempType");
-                        _Database::_Columnset csIteratorType;
+                        Database::rowset_ptr prsIteratorType = db.query("select * from __sqlitempType");
+                        sqliteColumnSet csIteratorType;
 
                         do
                         {
@@ -77,11 +79,11 @@ int main()
                                 iElementIteratorType = csIteratorType[1].as_int();
                         } while (prsIteratorType->to_next());
 
-                        _Database::_Rowset_Ptr prs = db.query(strLine);
+                        Database::rowset_ptr prs = db.query(strLine);
 
                         if (prs.get() && db.good())
                         {
-                            _Database::_Columnset cs = prs->column();
+                            sqliteColumnSet cs = prs->column();
                             int nSize = cs.size();
                             for (int i = 0; i < nSize; i++)
                             {
@@ -111,7 +113,7 @@ int main()
                                     break;
                                 case eitIterator:
                                 {
-                                    _Database::_Columnset::iterator it;
+                                    sqliteColumnSet::iterator it;
                                     for (it = cs.begin(); it != cs.end(); ++it)
                                         std::cout << *it << "\t";
                                     std::cout << std::endl;
@@ -119,7 +121,7 @@ int main()
                                 break;
                                 case eitConstIterator:
                                 {
-                                    _Database::_Columnset::const_iterator cit;
+                                    sqliteColumnSet::const_iterator cit;
                                     for (cit = cs.begin(); cit != cs.end(); ++cit)
                                         std::cout << *cit << "\t";
                                     std::cout << std::endl;
@@ -127,7 +129,7 @@ int main()
                                 break;
                                 case eitInputOperator:
                                 {
-                                    _Database::_Element e;
+                                    sqliteElement e;
                                     for (int i = 0; i < nSize; i++)
                                     {
                                         cs >> e;
@@ -148,7 +150,7 @@ int main()
 
                     if (db.fail())
                     {
-                        string strError;
+                        std::string strError;
                         db.get_errmsg(strError);
                         std::cout << strError << std::endl;
                     }

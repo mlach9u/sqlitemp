@@ -3,8 +3,8 @@
 
 #include "xsqlitemp.h"
 
-template< typename _Elem, typename _Traits >
-std::basic_ostream< _Elem, _Traits >& operator <<(std::basic_ostream< _Elem, _Traits >& _Ostr, const sqliteElement< _Elem >& e)
+template<typename _Elem, typename _Traits>
+std::basic_ostream<_Elem, _Traits>& operator <<(std::basic_ostream<_Elem, _Traits>& _Ostr, const sqliteElement& e)
 {
     switch (e.type())
     {
@@ -15,23 +15,15 @@ std::basic_ostream< _Elem, _Traits >& operator <<(std::basic_ostream< _Elem, _Tr
     return _Ostr;
 }
 
-template< typename _Elem >
 struct sqliteDatabase
 {
-    typedef typename sqliteRowSet< _Elem > _Rowset;
-    typedef typename _Rowset::_ColumnSet _Columnset;
-    typedef typename _Columnset::_Element _Element;
-    typedef typename _Element::_String _String;
-
-    typedef typename sqliteExecutor< _Elem > _Executor;
-
-    typedef typename std::shared_ptr< _Rowset > _Rowset_Ptr;
+    typedef std::shared_ptr<sqliteRowSet> rowset_ptr;
 
 public:
     sqliteDatabase()
         : m_SQLite(0), m_nLastError(SQLITE_OK) {}
 
-    sqliteDatabase(const _String& strFileName, int nFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, const char* zVfs = 0)
+    sqliteDatabase(const std::string& strFileName, int nFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, const char* zVfs = 0)
         : m_SQLite(0), m_nLastError(SQLITE_OK)
     {
         open(strFileName, nFlags, zVfs);
@@ -42,44 +34,76 @@ public:
         close();
     }
 
-public:
-    bool good() const { return (m_nLastError == SQLITE_OK); }
-    bool fail() const { return !good(); }
-    void clear_err() { m_nLastError = SQLITE_OK; }
-    void set_err(int nError) { m_nLastError = nError; }
+    bool good() const
+    {
+        return (m_nLastError == SQLITE_OK);
+    }
+    bool fail() const
+    {
+        return !good();
+    }
+    void clear_err()
+    {
+        m_nLastError = SQLITE_OK;
+    }
+    void set_err(int nError)
+    {
+        m_nLastError = nError;
+    }
 
     int get_err()
     {
-        if (m_nLastError)	return m_nLastError;
-        else if (m_SQLite)	return sqlite3_errcode(m_SQLite);
+        if (m_nLastError)
+        {
+            return m_nLastError;
+        }
+        else if (m_SQLite)
+        {
+            return sqlite3_errcode(m_SQLite);
+        }
         return 0;
     }
 
     int get_exterr()
     {
         if (m_SQLite)
+        {
             return sqlite3_extended_errcode(m_SQLite);
+        }
         return 0;
     }
 
-    void get_errmsg(_String & strError)
+    void get_errmsg(std::string& strError)
     {
-        if (m_nLastError)	strError.fromutf8(sqlite3_errstr(m_nLastError));
-        else if (m_SQLite)	strError.fromutf8(sqlite3_errmsg(m_SQLite));
+        if (m_nLastError)
+        {
+            strError = sqlite3_errstr(m_nLastError);
+        }
+        else if (m_SQLite)
+        {
+            strError = sqlite3_errmsg(m_SQLite);
+        }
     }
 
     void throw_errmsg()
     {
-        if (m_nLastError)	throw std::exception(string().fromutf8(sqlite3_errstr(m_nLastError)).c_str());
-        else if (m_SQLite)	throw std::exception(string().fromutf8(sqlite3_errmsg(m_SQLite)).c_str());
+        if (m_nLastError)
+        {
+            throw std::runtime_error(sqlite3_errstr(m_nLastError));
+        }
+        else if (m_SQLite)
+        {
+            throw std::runtime_error(sqlite3_errmsg(m_SQLite));
+        }
     }
 
-public:
-    bool open(const _String & strFileName, int nFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, const char* zVfs = 0)
+    bool open(const std::string& strFileName, int nFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, const char* zVfs = 0)
     {
         if (m_SQLite)
+        {
             close();
-        m_nLastError = sqlite3_open_v2(strFileName.toutf8().c_str(), &m_SQLite, nFlags, zVfs);
+        }
+        m_nLastError = sqlite3_open_v2(strFileName.c_str(), &m_SQLite, nFlags, zVfs);
         return (m_nLastError == SQLITE_OK);
     }
 
@@ -92,14 +116,13 @@ public:
         }
     }
 
-private:
-    bool _execute(const _String & strSql)
+    bool execute(const std::string& strSql)
     {
-        _SQLiteStmt SQLiteStmt;
-        m_nLastError = sqlite3_prepare_v3(m_SQLite, strSql.toutf8().c_str(), -1, 0, &SQLiteStmt, 0);
-        if (SQLiteStmt)
+        SQLiteStmt stmt;
+        m_nLastError = sqlite3_prepare_v3(m_SQLite, strSql.c_str(), -1, 0, &stmt, 0);
+        if (stmt)
         {
-            _Executor exec(SQLiteStmt);
+            sqliteExecutor exec(stmt);
             m_nLastError = exec.execute();
             switch (m_nLastError)
             {
@@ -111,14 +134,14 @@ private:
         return (m_nLastError == SQLITE_OK);
     }
 
-    _Rowset_Ptr _query(const _String & strSql)
+    rowset_ptr query(const std::string& strSql)
     {
-        _Rowset_Ptr pRet;
-        _SQLiteStmt SQLiteStmt;
-        m_nLastError = sqlite3_prepare_v3(m_SQLite, strSql.toutf8().c_str(), -1, 0, &SQLiteStmt, 0);
-        if (SQLiteStmt)
+        rowset_ptr pRet;
+        SQLiteStmt stmt;
+        m_nLastError = sqlite3_prepare_v3(m_SQLite, strSql.c_str(), -1, 0, &stmt, 0);
+        if (stmt)
         {
-            pRet.reset(new _Rowset(SQLiteStmt));
+            pRet.reset(new sqliteRowSet(stmt));
             if (!pRet->to_next())
             {
                 m_nLastError = pRet->get_result();
@@ -128,61 +151,8 @@ private:
         return pRet;
     }
 
-public:
-    template< typename TYPE >
-    bool executeV(const TYPE * lpszFormat, va_list v)
-    {
-        _String strSql;
-        strSql.formatV(lpszFormat, v);
-        return _execute(strSql);
-    }
-
-    bool execute(const char* lpszFormat, ...)
-    {
-        va_list v;
-        va_start(v, lpszFormat);
-        bool bRet = executeV(lpszFormat, v);
-        va_end(v);
-        return bRet;
-    }
-
-    bool execute(const wchar_t* lpszFormat, ...)
-    {
-        va_list v;
-        va_start(v, lpszFormat);
-        bool bRet = executeV(lpszFormat, v);
-        va_end(v);
-        return bRet;
-    }
-
-    template< typename TYPE >
-    _Rowset_Ptr queryV(const TYPE * lpszFormat, va_list v)
-    {
-        _String strSql;
-        strSql.formatV(lpszFormat, v);
-        return _query(strSql);
-    }
-
-    _Rowset_Ptr query(const char* lpszFormat, ...)
-    {
-        va_list v;
-        va_start(v, lpszFormat);
-        _Rowset_Ptr pRet = queryV(lpszFormat, v);
-        va_end(v);
-        return pRet;
-    }
-
-    _Rowset_Ptr query(const wchar_t* lpszFormat, ...)
-    {
-        va_list v;
-        va_start(v, lpszFormat);
-        _Rowset_Ptr pRet = queryV(lpszFormat, v);
-        va_end(v);
-        return pRet;
-    }
-
 private:
-    _SQLite m_SQLite;
+    SQLite m_SQLite;
     int m_nLastError;
 };
 
