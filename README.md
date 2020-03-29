@@ -47,10 +47,10 @@ else
 #### Select query
 
 ```cpp
-sqliteDatabase<char>::_Rowset_Ptr prs = db.query("SELECT * FROM sqlitemp_table");
+sqliteDatabase::rowset_ptr prs = db.query("SELECT * FROM sqlitemp_table");
 if (prs.get() && db.good())
 {
-    sqliteDatabase<char>::_Columnset cs = prs->column();
+    sqliteColumnSet cs = prs->column();
     int nSize = cs.size();
     for (int i = 0; i < nSize; i++)
         std::cout << cs.at(i).name() << "\t";
