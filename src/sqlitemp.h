@@ -3,18 +3,6 @@
 
 #include "xsqlitemp.h"
 
-template<typename _Elem, typename _Traits>
-std::basic_ostream<_Elem, _Traits>& operator <<(std::basic_ostream<_Elem, _Traits>& _Ostr, const sqliteElement& e)
-{
-    switch (e.type())
-    {
-    case SQLITE_INTEGER:	_Ostr << e.as_int();	break;
-    case SQLITE_FLOAT:		_Ostr << e.as_double();	break;
-    case SQLITE_TEXT:		_Ostr << e.as_string(); break;
-    }
-    return _Ostr;
-}
-
 struct sqliteDatabase
 {
     typedef std::shared_ptr<sqliteRowSet> rowset_ptr;
