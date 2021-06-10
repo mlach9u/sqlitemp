@@ -5,7 +5,11 @@
 
 struct sqliteDatabase
 {
+#if __SQLITEMP_USE_TR1_NAMESPACE__
+    typedef std::tr1::shared_ptr<sqliteRowSet> rowset_ptr;
+#else
     typedef std::shared_ptr<sqliteRowSet> rowset_ptr;
+#endif
 
 public:
     sqliteDatabase()

@@ -16,6 +16,7 @@ public:
         : m_SQLiteStmt(Other.m_SQLiteStmt)
         , m_iColumn(Other.m_iColumn)
     {}
+#if __SQLITEMP_RVALUE_REFERENCE__
     sqliteColumn(sqliteColumn&& Other)
         : m_SQLiteStmt(Other.m_SQLiteStmt)
         , m_iColumn(Other.m_iColumn)
@@ -23,6 +24,7 @@ public:
         Other.m_SQLiteStmt = 0;
         Other.m_iColumn = -1;
     }
+#endif
     sqliteColumn(SQLiteStmt stmt, int iColumn)
         : m_SQLiteStmt(stmt), m_iColumn(iColumn)
     {}
@@ -47,11 +49,13 @@ public:
         return *this;
     }
 
+#if __SQLITEMP_RVALUE_REFERENCE__
     const sqliteColumn& operator=(sqliteColumn&& Other)
     {
         swap(Other);
         return *this;
     }
+#endif
 
     void swap(sqliteColumn& Other)
     {
@@ -75,10 +79,12 @@ public:
     sqliteElement(const sqliteElement& Other)
         : sqliteColumn(Other)
     {}
+#if __SQLITEMP_RVALUE_REFERENCE__
     sqliteElement(sqliteElement&& Other)
         : sqliteColumn(std::move(Other))
     {
     }
+#endif
     sqliteElement(SQLiteStmt stmt, int iColumn)
         : sqliteColumn(stmt, iColumn)
     {}
@@ -122,11 +128,13 @@ public:
         return *this;
     }
 
+#if __SQLITEMP_RVALUE_REFERENCE__
     const sqliteElement& operator=(sqliteElement&& Other)
     {
         swap(Other);
         return *this;
     }
+#endif
 
     void swap(sqliteElement& Other)
     {
@@ -219,6 +227,7 @@ public:
         : m_SQLiteStmt(Other.m_SQLiteStmt)
         , m_iColumn(Other.m_iColumn)
     {}
+#if __SQLITEMP_RVALUE_REFERENCE__
     sqliteColumnSet(sqliteColumnSet&& Other)
         : m_SQLiteStmt(Other.m_SQLiteStmt)
         , m_iColumn(Other.m_iColumn)
@@ -226,6 +235,7 @@ public:
         Other.m_SQLiteStmt = 0;
         Other.m_iColumn = -1;
     }
+#endif
     sqliteColumnSet(SQLiteStmt stmt, int iStart = 0)
         : m_SQLiteStmt(stmt), m_iColumn(iStart)
     {}
@@ -286,11 +296,13 @@ public:
         return *this;
     }
 
+#if __SQLITEMP_RVALUE_REFERENCE__
     const sqliteColumnSet& operator=(sqliteColumnSet&& Other)
     {
         swap(Other);
         return *this;
     }
+#endif
 
     sqliteElement operator[](int iColumn) const
     {
@@ -339,11 +351,13 @@ public:
     sqliteStatement(SQLiteStmt stmt)
         : m_SQLiteStmt(stmt)
     {}
+#if __SQLITEMP_RVALUE_REFERENCE__
     sqliteStatement(sqliteStatement&& Other)
         : m_SQLiteStmt(Other.m_SQLiteStmt)
     {
         Other.m_SQLiteStmt = 0;
     }
+#endif
     virtual ~sqliteStatement()
     {
         if (m_SQLiteStmt)
