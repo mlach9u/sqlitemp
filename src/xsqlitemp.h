@@ -96,29 +96,26 @@ public:
 
     const void* as_blob() const
     {
-        if (type() != SQLITE_BLOB)
-            throw std::runtime_error("Invalid column type");
         return sqlite3_column_blob(m_SQLiteStmt, m_iColumn);
     }
 
     double as_double() const
     {
-        if (type() != SQLITE_FLOAT)
-            throw std::runtime_error("Invalid column type");
         return sqlite3_column_double(m_SQLiteStmt, m_iColumn);
     }
 
     int as_int() const
     {
-        if (type() != SQLITE_INTEGER)
-            throw std::runtime_error("Invalid column type");
         return sqlite3_column_int(m_SQLiteStmt, m_iColumn);
+    }
+
+    sqlite_int64 as_int64() const
+    {
+        return sqlite3_column_int64(m_SQLiteStmt, m_iColumn);
     }
 
     std::string as_string() const
     {
-        if (type() != SQLITE_TEXT)
-            throw std::runtime_error("Invalid column type");
         return std::string((const char*)(sqlite3_column_text(m_SQLiteStmt, m_iColumn)));
     }
 

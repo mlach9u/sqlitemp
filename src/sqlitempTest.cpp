@@ -71,7 +71,7 @@ int main()
 
                 strTempLine = strLine;
                 std::transform(strTempLine.begin(), strTempLine.end(), strTempLine.begin(),
-                    [](unsigned char c) { return std::tolower(c); }
+                    [](unsigned char c) { return tolower(c); }
                 );
 
                 if (strTempLine != "exit")
