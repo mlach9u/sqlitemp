@@ -137,6 +137,10 @@ public:
             if (!pRet->to_next())
             {
                 m_nLastError = pRet->get_result();
+                if (m_nLastError == SQLITE_DONE)
+                {
+                    m_nLastError = SQLITE_OK;
+                }
                 pRet.reset();
             }
         }
