@@ -213,6 +213,11 @@ public:
         d = at(m_iColumn++).as_double();
         return *this;
     }
+    sqliteColumnSet& operator >> (sqlite_int64& ll)
+    {
+        ll = at(m_iColumn++).as_int64();
+        return *this;
+    }
     sqliteColumnSet& operator >> (std::string& str)
     {
         str = at(m_iColumn++).as_string();
