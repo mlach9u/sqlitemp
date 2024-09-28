@@ -140,83 +140,9 @@ public:
 };
 
 
-class sqliteElementConstIterator
-{
-public:
-    sqliteElementConstIterator()
-        : m_SQLiteStmt(0), m_iColumn(0) {}
-    sqliteElementConstIterator(SQLiteStmt stmt, int iColumn)
-        : m_SQLiteStmt(stmt), m_iColumn(iColumn) {}
-
-    bool operator==(const sqliteElementConstIterator& Other) const
-    {
-        return (m_SQLiteStmt == Other.m_SQLiteStmt)
-            && (m_iColumn == Other.m_iColumn);
-    }
-    bool operator!=(const sqliteElementConstIterator & Other) const
-    {
-        return !(*this == Other);
-    }
-    const sqliteElementConstIterator& operator++(int)
-    {
-        m_Element = sqliteElement(m_SQLiteStmt, ++m_iColumn);
-        return *this; 
-    }
-    const sqliteElementConstIterator& operator++()
-    {
-        m_Element = sqliteElement(m_SQLiteStmt, ++m_iColumn);
-        return *this; 
-    }
-    const sqliteElementConstIterator& operator=(const sqliteElementConstIterator & Other)
-    {
-        if (this != &Other)
-        {
-            m_SQLiteStmt = Other.m_SQLiteStmt;
-            m_iColumn = Other.m_iColumn;
-        }
-        return *this;
-    }
-    const sqliteElement* operator->() const
-    {
-        return &m_Element;
-    }
-    const sqliteElement& operator*() const
-    {
-        return m_Element;
-    }
-
-protected:
-    sqliteElement m_Element;
-    SQLiteStmt m_SQLiteStmt;
-    int m_iColumn;
-};
-
-
-class sqliteElementIterator : public sqliteElementConstIterator
-{
-public:
-    sqliteElementIterator() {}
-    sqliteElementIterator(SQLiteStmt stmt, int iColumn)
-        : sqliteElementConstIterator(stmt, iColumn) {}
-
-public:
-    sqliteElement* operator->()
-    {
-        return &m_Element;
-    }
-    sqliteElement& operator*()
-    {
-        return m_Element;
-    }
-};
-
-
 class sqliteColumnSet
 {
 public:
-    typedef sqliteElementConstIterator const_iterator;
-    typedef sqliteElementIterator iterator;
-
     sqliteColumnSet()
         : m_SQLiteStmt(0), m_iColumn(-1)
     {}
@@ -247,40 +173,6 @@ public:
         if (!(iColumn < size()))
             throw std::runtime_error("Out of column range");
         return sqliteElement(m_SQLiteStmt, iColumn);
-    }
-
-    const_iterator begin() const
-    {
-        return const_iterator(m_SQLiteStmt, 0);
-    }
-    const_iterator end() const
-    {
-        return const_iterator(m_SQLiteStmt, size());
-    }
-    const_iterator rbegin() const
-    {
-        return const_iterator(m_SQLiteStmt, size() - 1);
-    }
-    const_iterator rend() const
-    {
-        return const_iterator(m_SQLiteStmt, -1);
-    }
-
-    iterator begin()
-    {
-        return iterator(m_SQLiteStmt, 0);
-    }
-    iterator end()
-    {
-        return iterator(m_SQLiteStmt, size());
-    }
-    iterator rbegin()
-    {
-        return iterator(m_SQLiteStmt, size() - 1);
-    }
-    iterator rend()
-    {
-        return iterator(m_SQLiteStmt, -1);
     }
 
     const sqliteColumnSet& operator=(const sqliteColumnSet & Other)

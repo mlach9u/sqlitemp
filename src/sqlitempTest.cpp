@@ -33,8 +33,6 @@ enum ElementIteratorType
 {
     eitAt,
     eitOperator,
-    eitIterator,
-    eitConstIterator,
     eitInputOperator,
 
     eitCount
@@ -123,22 +121,6 @@ int main()
                                         std::cout << cs[i] << "\t";
                                     std::cout << std::endl;
                                     break;
-                                case eitIterator:
-                                {
-                                    sqliteColumnSet::iterator it;
-                                    for (it = cs.begin(); it != cs.end(); ++it)
-                                        std::cout << *it << "\t";
-                                    std::cout << std::endl;
-                                }
-                                break;
-                                case eitConstIterator:
-                                {
-                                    sqliteColumnSet::const_iterator cit;
-                                    for (cit = cs.begin(); cit != cs.end(); ++cit)
-                                        std::cout << *cit << "\t";
-                                    std::cout << std::endl;
-                                }
-                                break;
                                 case eitInputOperator:
                                 {
                                     sqliteElement e;
